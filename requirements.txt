@@ -1,0 +1,11 @@
+django<2
+coverage
+django_behave<0.2
+splinter<0.8
+model_mommy==1.2.6
+six==1.9.0
+mock==1.0.1
+djangorestframework<3.4.0
+django-extensions<1.7
+genty
+django-extensions
