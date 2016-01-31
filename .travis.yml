@@ -8,5 +8,5 @@ install:
 # command to run tests
 script:
   # - py.test -v --cov=dtables dtables
-  - unittest.sh
+  - ./unittest.sh
   - coveralls
