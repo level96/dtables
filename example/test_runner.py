@@ -11,5 +11,4 @@ class FixturesTestRunner(DiscoverRunner):
     def setup_databases(self, *args, **kwargs):
         result = super(FixturesTestRunner, self).setup_databases(*args, **kwargs)
         BasicFixtures()
-        logging.disable(logging.CRITICAL)
         return result

@@ -6,6 +6,8 @@ class BaseColumn(object):
     accessor = ''
     verbose_name = ''
     flat = True
+    ascending = ''
+    descending = ''
 
     def __init__(self, field=None, accessor=None, verbose_name=None, flat=True):
         if field:
@@ -24,6 +26,9 @@ class BaseColumn(object):
             self.accessor = self.accessor.replace(".", '__')
         else:
             self.accessor = self.accessor.replace("__", '.')
+
+        self.ascending = self.accessor
+        self.descending = "-{}".format(self.accessor)
 
     def render(self):
         return

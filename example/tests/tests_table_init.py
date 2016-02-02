@@ -2,6 +2,8 @@
 
 # import pytest
 import unittest
+
+from django.core.paginator import EmptyPage
 from genty import genty, genty_dataset
 from dtables.tables import DTable
 from dtables.columns import StringColumn
@@ -42,23 +44,66 @@ class DTableInitTest(unittest.TestCase):
             self.assertIn('id', e)
             break
 
-        for e in self.table.data:
-            logger.debug(e)
+        # for e in self.table.data:
+        #     print e
 
     @genty_dataset(
-        # field, value,
-        ({'count': 10, 'has_next': True, 'has_previous': False, 'total_count': 50, 'offset': 0, 'num_pages': 5, 'page': 1}, 1),
-        ({'count': 10, 'has_next': True, 'has_previous': True, 'total_count': 50, 'offset': 10, 'num_pages': 5, 'page': 2}, 2),
-        ({'count': 10, 'has_next': False, 'has_previous': True, 'total_count': 50, 'offset': 40, 'num_pages': 5, 'page': 5}, 5),
+        # fields, value,
+        ({'has_next': True, 'has_previous': False, 'offset': 0, 'page': 1}, 1),
+        ({'has_next': True, 'has_previous': True, 'offset': 10, 'page': 2}, 2),
+        ({'has_next': True, 'has_previous': True, 'offset': 40, 'page': 5}, 5),
+        ({'has_next': False, 'has_previous': True, 'offset': 50, 'page': 6}, 6),
     )
     def test_table_pagination_ranges(self, fields, page):
+        base_dict = {'count': 10, 'total_count': 59, 'num_pages': 6}
+        base_dict.update(fields)
+
         self.table = MyTable('PollChoiceTable', Choice.objects.all(), page_num=page)
 
         meta = self.table.meta
-        for k, v in fields.items():
+        for k, v in base_dict.items():
             self.assertIn(k, meta)
             self.assertEqual(v, meta.get(k, None))
 
+    @genty_dataset(-1, 0, 999)
+    def test_table_raise_empty_result_when_page_num_is_out_of_range(self, page_num):
+        self.assertRaises(
+            EmptyPage,
+            MyTable,
+            'PollChoiceTable',
+            Choice.objects.all(),
+            page_num=page_num
+        )
 
+
+@genty
 class DTableInitWithInitialTest(unittest.TestCase):
-    pass
+
+    @genty_dataset(
+        # sorting, first_elem, last_elem
+        # ((MyTable.,),),
+        ((MyTable.choice_name.ascending,), 'Choice-001', 'Choice-010'),
+        ((MyTable.choice_name.descending,), 'Choice-059', 'Choice-050'),
+        ((MyTable.poll.ascending, MyTable.choice_name.descending), 'Choice-059', 'Choice-050'),
+        ((MyTable.poll.ascending, MyTable.choice_name.ascending), 'Choice-001', 'Choice-010'),
+    )
+    def test_table_sorting_with_correct_fields(self, sorting, first_elem, last_elem):
+        table = MyTable('PollChoiceTable', Choice.objects.all(), sorting=sorting)
+
+        data = [e for e in table.data]
+
+        self.assertEqual(data[0]['name'], first_elem)
+        self.assertEqual(data[-1]['name'], last_elem)
+
+    @genty_dataset(
+        (('aaaa',),),
+        ((MyTable.poll.accessor, 'xxx'),),
+    )
+    def test_table_sorting_with_incorrect_fields(self, fields):
+        self.assertRaises(
+            ValueError,
+            MyTable,
+            'PollChoiceTable',
+            Choice.objects.all(),
+            sorting=fields
+        )
