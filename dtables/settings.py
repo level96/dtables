@@ -127,7 +127,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-
 # Logging
 '''
 LOGGING = {

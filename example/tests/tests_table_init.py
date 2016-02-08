@@ -22,7 +22,7 @@ class DTableInitTest(unittest.TestCase):
         self.assertTrue(isinstance(self.table, DTable))
 
     def test_process_fields_is_correct(self):
-        self.assertEqual(['choice_count', 'choice_name', 'poll'], self.table._field_names)
+        self.assertEqual(['choice_count', 'choice_name', 'date_created', 'poll'], self.table._field_names)
 
     @genty_dataset(
         # field, accessor, verbose_name
@@ -81,7 +81,6 @@ class DTableInitWithInitialTest(unittest.TestCase):
 
     @genty_dataset(
         # sorting, first_elem, last_elem
-        # ((MyTable.,),),
         ((MyTable.choice_name.ascending,), 'Choice-001', 'Choice-010'),
         ((MyTable.choice_name.descending,), 'Choice-059', 'Choice-050'),
         ((MyTable.poll.ascending, MyTable.choice_name.descending), 'Choice-059', 'Choice-050'),
@@ -100,10 +99,20 @@ class DTableInitWithInitialTest(unittest.TestCase):
         ((MyTable.poll.accessor, 'xxx'),),
     )
     def test_table_sorting_with_incorrect_fields(self, fields):
-        self.assertRaises(
-            ValueError,
-            MyTable,
-            'PollChoiceTable',
-            Choice.objects.all(),
-            sorting=fields
-        )
+        self.assertRaises(ValueError, MyTable, 'PollChoiceTable', Choice.objects.all(), sorting=fields)
+
+
+@genty
+class DTableInitWithFiltersTest(unittest.TestCase):
+    @genty_dataset(
+        ({MyTable.choice_name: 'Choice-003'}, ['Choice-003']),
+        (
+                {MyTable.choice_name: 'Choice-00'},
+                [u'Choice-001', u'Choice-002', u'Choice-003', u'Choice-004',
+                 u'Choice-005', u'Choice-006', u'Choice-007', u'Choice-008', u'Choice-009']
+         ),
+    )
+    def test_table_filtering(self, filters, result):
+        table = MyTable('PollChoiceTable', Choice.objects.all(), filters=filters)
+        table_data = [e.get('name') for e in table.data]
+        self.assertEqual(table_data, result)

@@ -1,7 +1,5 @@
 # coding: utf-8
 
-import logging
-
 from django.test.runner import DiscoverRunner
 from example.fixtures import BasicFixtures
 

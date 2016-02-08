@@ -15,16 +15,19 @@ class DTable(object):
     prefix = None
     data = None
     flat = True
+    filters = None
     sorting = ()
     page_num = 1
     per_page = 10
 
-    _fields = ()
+    _fields = {}
     _accessor_names = None
     _page = None
     _paginator = None
 
-    def __init__(self, id, query_set, prefix=None, initial={}, page_num=1, flat=None, per_page=None, sorting=()):
+    def __init__(self, id, query_set, prefix=None, initial={}, filters={},
+                 page_num=1, flat=None, per_page=None, sorting=()):
+
         self.id = id
 
         if query_set is not None:
@@ -39,10 +42,13 @@ class DTable(object):
             self.per_page = per_page
         if flat is not None:
             self.flat = flat
+        if filters is not None:
+            self.filters = filters
         if sorting is not None:
             self.sorting = sorting
 
         self._process_fields()
+        self._process_q_functions()
         self._process_sorting()
         self._process_pagination()
 
@@ -51,12 +57,16 @@ class DTable(object):
             lambda f: not EXCLUDE_ATTRS.get(f, False) and isinstance(getattr(self, f), BaseColumn),
             dir(self)
         )
-        self._fields = [getattr(self, f) for f in self._field_names]
-        self._accessor_names = ['id'] + [a.accessor for a in self._fields]
+        self._fields = dict([(f, getattr(self, f)) for f in self._field_names])
+        self._accessor_names = ['id'] + [a.accessor for a in self._fields.values()]
 
         # Set fields are flat
-        for f in self._fields:
+        for f in self._fields.values():
             f.set_flat(self.flat)
+
+    def _process_q_functions(self):
+        for field, search in self.filters.items():
+            self.query_set = self.query_set.filter(field.get_q_function(search))
 
     def _process_sorting(self):
         diff = set([s.replace("-", "") for s in self.sorting]) - set(self._accessor_names)
@@ -77,9 +87,11 @@ class DTable(object):
 
     @property
     def meta(self):
+        total_count = self.query_set.count()
+        count = total_count if total_count < self.per_page else self.per_page
         return {
-            'count': self.per_page,
-            'total_count': self.query_set.count(),
+            'count': count,
+            'total_count': total_count,
             'page': self.page_num,
             'has_next': self._page.has_next(),
             'has_previous': self._page.has_previous(),

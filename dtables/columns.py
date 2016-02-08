@@ -1,5 +1,7 @@
 # coding: utf-8
 
+from django.db.models import Q
+
 
 class BaseColumn(object):
     field = ''
@@ -30,9 +32,10 @@ class BaseColumn(object):
         self.ascending = self.accessor
         self.descending = "-{}".format(self.accessor)
 
-    def render(self):
-        return
+    def get_q_function(self, value):
+        return Q(**{self.accessor: value})
 
 
 class StringColumn(BaseColumn):
-    pass
+    def get_q_function(self, value):
+        return Q(**{'{}__icontains'.format(self.accessor): value})
