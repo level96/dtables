@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <table class="table table-striped">
+    <thead>
+    <tr>
+      {% for field in table.header %}
+        <th>
+          {{ field.verbose_name }}
+          <a href="?sorting={{ field.accessor }}" class="glyphicon glyphicon-triangle-top"></a>
+          <a href="?sorting=-{{ field.accessor }}" class="glyphicon glyphicon-triangle-bottom"></a>
+        </th>
+      {% endfor %}
+    </tr>
+    </thead>
+
+    {% for columns in table.data %}
+      <tr>
+        {% for col in columns %}
+          <td>{{ col }}</td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </table>
+{% endblock content %}

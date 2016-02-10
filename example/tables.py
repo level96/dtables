@@ -8,7 +8,8 @@ from dtables.columns import StringColumn
 
 
 class MyTable(DTable):
-    poll = StringColumn(field='poll_name', accessor='poll.name', verbose_name='Poll Name')
-    choice_name = StringColumn(field='name', accessor='name', verbose_name='Choice')
-    choice_count = StringColumn(field='count', accessor='count', verbose_name='Choice Count')
-    date_created = StringColumn(field='date_created', accessor='date_created', verbose_name='Date Created')
+    id = StringColumn(accessor='id', verbose_name='Id')
+    poll = StringColumn(accessor='poll.name', verbose_name='Poll Name')
+    choice_name = StringColumn(accessor='name', verbose_name='Choice')
+    choice_count = StringColumn(accessor='count', verbose_name='Choice Count')
+    date_created = StringColumn(accessor='date_created', verbose_name='Date Created')

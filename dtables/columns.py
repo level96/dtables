@@ -4,22 +4,24 @@ from django.db.models import Q
 
 
 class BaseColumn(object):
-    field = ''
     accessor = ''
     verbose_name = ''
     flat = True
     ascending = ''
     descending = ''
+    creation_counter = 0
 
-    def __init__(self, field=None, accessor=None, verbose_name=None, flat=True):
-        if field:
-            self.field = field
+    def __init__(self, accessor=None, verbose_name=None, flat=True):
         if accessor:
             self.accessor = accessor
         if verbose_name:
             self.verbose_name = verbose_name
         if flat is not None:
             self.flat = flat
+
+        # Ensure correct field ordering : field definition
+        self.creation_counter = BaseColumn.creation_counter
+        BaseColumn.creation_counter += 1
 
         self.set_flat(self.flat)
 
